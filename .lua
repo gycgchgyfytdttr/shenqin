@@ -455,7 +455,7 @@ Open.Draggable = true
 Open.Image = "rbxassetid://77240230517276"
 Open.MouseButton1Click:Connect(function()
   Main.Visible = not Main.Visible
-  Open.Image = Main.Visible and "rbxassetid://77240230517276" or "rbxassetid://16060333448" --开关的图
+  Open.Image = Main.Visible and "rbxassetid://76765190932500" or "rbxassetid://125659062095965" --开关的图
 end)
 
 UICorner_2.CornerRadius = UDim.new(0, 90)
