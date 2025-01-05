@@ -1,0 +1,35 @@
+local StarterGui = game:GetService("StarterGui")
+local Players = game:GetService("Players")
+local WhitelistedPlayers = {
+    [""] = true,
+    [""] = true,
+    ["guoguo0403"] = true,
+    ["zxc15862"] = true,
+}
+
+local function IsWhitelisted(player)
+    return WhitelistedPlayers[player.Name] or false
+end
+
+local localPlayer = Players.LocalPlayer
+
+local isLocalPlayerWhitelisted = IsWhitelisted(localPlayer)
+
+game:GetService("StarterGui"):SetCore("SendNotification",{ Title = "正在检查白名单"; Text ="正在检查"; Duration = 2; })wait("3")
+
+game:GetService("StarterGui"):SetCore("SendNotification",{ Title = "结果如下"; Text ="请等待3秒"; Duration = 2; })wait("3")
+
+
+if isLocalPlayerWhitelisted then
+    StarterGui:SetCore("SendNotification", {
+        Title = "白名单认证",
+        Text = "玩家:"..localPlayer.Name.."，检测到您属于白名单用户，正在启动脚本",
+        Duration = 7,
+    })
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/gycgchgyfytdttr/shenqin/refs/heads/main/Protected_8806804661479164.txt"))()
+else
+
+game:GetService("StarterGui"):SetCore("SendNotification",{ Title = "您并不是白名单用户"; Text ="没有白名单别想玩"; Duration = 2; })wait("3")
+
+    localPlayer:Kick("并没有白名单你玩什么😂😂😂😂")
+end
