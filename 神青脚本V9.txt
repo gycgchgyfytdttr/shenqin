@@ -1,0 +1,4 @@
+神青脚本V9去掉没用功能，增加实用功能，执行该脚本会有两个Ul，到俄亥俄州执行只有一个Ul，执行过后会播放一个2分钟的音乐，并且会自动复制QQ群号
+
+shinqine="作者神青" 
+loadstring(game:HttpGet(('https://raw.githubusercontent.com/gycgchgyfytdttr/shenqin/refs/heads/main/shinqine666.lua')))()
