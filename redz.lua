@@ -270,7 +270,7 @@ local GetFlag, SetFlag, CheckFlag do
 end
 
 -- 创建彩虹边框函数
-local function CreateRainbowBorder(parent, sizeOffset, positionOffset, gradientColors)
+local function CreateRainbowBorder(parent, sizeOffset, positionOffset)
 	local RainbowBorder = Create("Frame", parent, {
 		Size = UDim2.new(1, sizeOffset, 1, sizeOffset),
 		Position = UDim2.new(0, positionOffset, 0, positionOffset),
@@ -286,7 +286,7 @@ local function CreateRainbowBorder(parent, sizeOffset, positionOffset, gradientC
 	
 	local RainbowGradient = Create("UIGradient", RainbowBorder, {
 		Rotation = 0,
-		Color = gradientColors or ColorSequence.new({
+		Color = ColorSequence.new({
 			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
 			ColorSequenceKeypoint.new(0.16, Color3.fromRGB(255, 165, 0)),
 			ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 255, 0)),
@@ -307,61 +307,6 @@ local function CreateRainbowBorder(parent, sizeOffset, positionOffset, gradientC
 	
 	return RainbowBorder, RainbowGradient
 end
-
--- 边框颜色预设
-local BorderThemes = {
-	Rainbow = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
-		ColorSequenceKeypoint.new(0.16, Color3.fromRGB(255, 165, 0)),
-		ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 255, 0)),
-		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 0)),
-		ColorSequenceKeypoint.new(0.66, Color3.fromRGB(0, 0, 255)),
-		ColorSequenceKeypoint.new(0.83, Color3.fromRGB(75, 0, 130)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(238, 130, 238))
-	}),
-	BlueRed = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 255)),
-		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(128, 0, 128)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
-	}),
-	PurpleRed = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(128, 0, 128)),
-		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 0, 255)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
-	}),
-	CyanYellow = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 255)),
-		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 0)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 0))
-	}),
-	Ocean = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 150, 255)),
-		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 200, 255))
-	}),
-	Fire = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 0)),
-		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 165, 0)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
-	}),
-	Neon = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 255)),
-		ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 255)),
-		ColorSequenceKeypoint.new(0.66, Color3.fromRGB(255, 255, 0)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 255))
-	})
-}
-
--- UI背景颜色预设
-local BackgroundColors = {
-	Color3.fromRGB(25, 25, 25),    -- 深黑
-	Color3.fromRGB(30, 30, 30),    -- 黑
-	Color3.fromRGB(40, 40, 40),    -- 深灰
-	Color3.fromRGB(50, 50, 50),    -- 灰
-	Color3.fromRGB(20, 20, 40),    -- 深蓝
-	Color3.fromRGB(40, 20, 40),    -- 深紫
-	Color3.fromRGB(20, 40, 20)     -- 深绿
-}
 
 local ScreenGui = Create("ScreenGui", CoreGui, {
 	Name = "redz Library V5",
@@ -843,401 +788,140 @@ function redzlib:MakeWindow(Configs)
 		Name = "Minimize"
 	})
 	
-	-- 添加设置按钮
-	local SettingsButton = SetProps(CloseButton:Clone(), {
-		Position = UDim2.new(1, -60, 0.5),
-		Image = "rbxassetid://10747384394",
-		Name = "Settings"
-	})
-	
 	SetChildren(ButtonsFolder, {
 		CloseButton,
-		MinimizeButton,
-		SettingsButton
+		MinimizeButton
 	})
 	
 	local Minimized, SaveSize, WaitClick
 	local Window, FirstTab = {}, false
 	
-	-- 设置页面
-	local SettingsFrame = Create("Frame", MainFrame, {
-		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundTransparency = 0.95,
-		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-		Visible = false,
-		Name = "SettingsFrame"
-	})
+	-- 搜索功能相关变量
+	local SearchResults = {}
+	local SearchFrame = nil
+	local SearchTextBox = nil
 	
-	local SettingsContainer = Create("ScrollingFrame", SettingsFrame, {
-		Size = UDim2.new(0.9, 0, 0.9, 0),
-		Position = UDim2.new(0.5, 0, 0.5, 0),
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		BackgroundColor3 = Theme["Color Hub 2"],
-		ScrollBarThickness = 3,
-		ScrollBarImageColor3 = Theme["Color Theme"],
-		CanvasSize = UDim2.new(),
-		AutomaticCanvasSize = "Y",
-		Name = "SettingsContainer"
-	})Make("Corner", SettingsContainer)
-	
-	local SettingsLayout = Create("UIListLayout", SettingsContainer, {
-		Padding = UDim.new(0, 10),
-		SortOrder = "LayoutOrder"
-	})
-	
-	local SettingsPadding = Create("UIPadding", SettingsContainer, {
-		PaddingLeft = UDim.new(0, 15),
-		PaddingRight = UDim.new(0, 15),
-		PaddingTop = UDim.new(0, 15),
-		PaddingBottom = UDim.new(0, 15)
-	})
-	
-	-- 设置标题
-	local SettingsTitle = InsertTheme(Create("TextLabel", SettingsContainer, {
-		Size = UDim2.new(1, 0, 0, 30),
-		Text = "UI 设置",
-		TextColor3 = Theme["Color Text"],
-		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamBold,
-		TextSize = 18,
-		TextXAlignment = "Center",
-		LayoutOrder = 1
-	}), "Text")
-	
-	-- 边框颜色选择
-	local BorderColorSection = Create("Frame", SettingsContainer, {
-		Size = UDim2.new(1, 0, 0, 120),
-		BackgroundTransparency = 1,
-		LayoutOrder = 2
-	})
-	
-	local BorderColorTitle = InsertTheme(Create("TextLabel", BorderColorSection, {
-		Size = UDim2.new(1, 0, 0, 20),
-		Text = "边框颜色主题",
-		TextColor3 = Theme["Color Text"],
-		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamMedium,
-		TextSize = 14,
-		TextXAlignment = "Left"
-	}), "Text")
-	
-	local BorderColorButtons = Create("Frame", BorderColorSection, {
-		Size = UDim2.new(1, 0, 0, 90),
-		Position = UDim2.new(0, 0, 0, 25),
-		BackgroundTransparency = 1
-	})
-	
-	local BorderColorLayout = Create("UIListLayout", BorderColorButtons, {
-		FillDirection = "Horizontal",
-		Padding = UDim.new(0, 5)
-	})
-	
-	-- 创建边框颜色按钮
-	local currentBorderTheme = "Rainbow"
-	local borderColorButtons = {}
-	
-	for themeName, colorSequence in pairs(BorderThemes) do
-		local ColorButton = Create("TextButton", BorderColorButtons, {
-			Size = UDim2.new(0, 80, 0, 25),
-			BackgroundColor3 = colorSequence.Keypoints[1].Value,
-			Text = themeName,
-			TextColor3 = Color3.fromRGB(255, 255, 255),
-			TextSize = 10,
-			AutoButtonColor = false
-		})Make("Corner", ColorButton, UDim.new(0, 4))
-		
-		-- 为按钮添加渐变效果
-		local ButtonGradient = Create("UIGradient", ColorButton, {
-			Color = colorSequence,
-			Rotation = 45
+	-- 创建搜索框
+	local function CreateSearchBox(parent)
+		local SearchContainer = Create("Frame", parent, {
+			Size = UDim2.new(1, -20, 0, 35),
+			Position = UDim2.new(0, 10, 0, 5),
+			BackgroundTransparency = 1,
+			Name = "SearchContainer"
 		})
 		
-		-- 选中状态指示器
-		local SelectedIndicator = Create("Frame", ColorButton, {
-			Size = UDim2.new(1, 4, 1, 4),
-			Position = UDim2.new(0, -2, 0, -2),
-			BackgroundTransparency = 0.8,
-			BackgroundColor3 = Theme["Color Theme"],
-			Visible = (themeName == "Rainbow")
-		})Make("Corner", SelectedIndicator, UDim.new(0, 6))
+		local SearchBoxFrame = InsertTheme(Create("Frame", SearchContainer, {
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundColor3 = Theme["Color Hub 2"],
+			BackgroundTransparency = 0.1
+		}), "Frame")Make("Corner", SearchBoxFrame, UDim.new(0, 8))
 		
-		ColorButton.Activated:Connect(function()
-			-- 更新所有按钮的选中状态
-			for name, btn in pairs(borderColorButtons) do
-				btn.SelectedIndicator.Visible = (name == themeName)
-			end
-			
-			currentBorderTheme = themeName
-			RainbowGradient.Color = colorSequence
-		end)
+		local SearchIcon = Create("ImageLabel", SearchBoxFrame, {
+			Size = UDim2.new(0, 20, 0, 20),
+			Position = UDim2.new(0, 8, 0.5, 0),
+			AnchorPoint = Vector2.new(0, 0.5),
+			BackgroundTransparency = 1,
+			Image = "rbxassetid://10709791437",
+			ImageColor3 = Theme["Color Dark Text"]
+		})
 		
-		borderColorButtons[themeName] = {
-			Button = ColorButton,
-			SelectedIndicator = SelectedIndicator
-		}
-	end
-	
-	-- UI大小调整滑块
-	local UISizeSection = Create("Frame", SettingsContainer, {
-		Size = UDim2.new(1, 0, 0, 80),
-		BackgroundTransparency = 1,
-		LayoutOrder = 3
-	})
-	
-	local UISizeTitle = InsertTheme(Create("TextLabel", UISizeSection, {
-		Size = UDim2.new(1, 0, 0, 20),
-		Text = "UI 大小",
-		TextColor3 = Theme["Color Text"],
-		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamMedium,
-		TextSize = 14,
-		TextXAlignment = "Left"
-	}), "Text")
-	
-	local UISizeSlider = Create("Frame", UISizeSection, {
-		Size = UDim2.new(1, 0, 0, 40),
-		Position = UDim2.new(0, 0, 0, 25),
-		BackgroundTransparency = 1
-	})
-	
-	local UISizeBar = InsertTheme(Create("Frame", UISizeSlider, {
-		Size = UDim2.new(1, 0, 0, 6),
-		Position = UDim2.new(0, 0, 0.5, 0),
-		AnchorPoint = Vector2.new(0, 0.5),
-		BackgroundColor3 = Theme["Color Stroke"]
-	}), "Stroke")Make("Corner", UISizeBar)
-	
-	local UISizeIndicator = InsertTheme(Create("Frame", UISizeBar, {
-		Size = UDim2.new(0.5, 0, 1, 0),
-		BackgroundColor3 = Theme["Color Theme"]
-	}), "Theme")Make("Corner", UISizeIndicator)
-	
-	local UISizeHandle = Create("Frame", UISizeBar, {
-		Size = UDim2.new(0, 12, 0, 12),
-		Position = UDim2.new(0.5, 0, 0.5, 0),
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-		BackgroundTransparency = 0.2
-	})Make("Corner", UISizeHandle, UDim.new(0.5, 0))
-	
-	local UISizeValue = InsertTheme(Create("TextLabel", UISizeSlider, {
-		Size = UDim2.new(1, 0, 0, 20),
-		Position = UDim2.new(0, 0, 1, 0),
-		Text = "大小: 100%",
-		TextColor3 = Theme["Color Text"],
-		BackgroundTransparency = 1,
-		Font = Enum.Font.Gotham,
-		TextSize = 12
-	}), "Text")
-	
-	-- UI透明度调整滑块
-	local UITransparencySection = Create("Frame", SettingsContainer, {
-		Size = UDim2.new(1, 0, 0, 80),
-		BackgroundTransparency = 1,
-		LayoutOrder = 4
-	})
-	
-	local UITransparencyTitle = InsertTheme(Create("TextLabel", UITransparencySection, {
-		Size = UDim2.new(1, 0, 0, 20),
-		Text = "UI 透明度",
-		TextColor3 = Theme["Color Text"],
-		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamMedium,
-		TextSize = 14,
-		TextXAlignment = "Left"
-	}), "Text")
-	
-	local UITransparencySlider = Create("Frame", UITransparencySection, {
-		Size = UDim2.new(1, 0, 0, 40),
-		Position = UDim2.new(0, 0, 0, 25),
-		BackgroundTransparency = 1
-	})
-	
-	local UITransparencyBar = InsertTheme(Create("Frame", UITransparencySlider, {
-		Size = UDim2.new(1, 0, 0, 6),
-		Position = UDim2.new(0, 0, 0.5, 0),
-		AnchorPoint = Vector2.new(0, 0.5),
-		BackgroundColor3 = Theme["Color Stroke"]
-	}), "Stroke")Make("Corner", UITransparencyBar)
-	
-	local UITransparencyIndicator = InsertTheme(Create("Frame", UITransparencyBar, {
-		Size = UDim2.new(0.2, 0, 1, 0),
-		BackgroundColor3 = Theme["Color Theme"]
-	}), "Theme")Make("Corner", UITransparencyIndicator)
-	
-	local UITransparencyHandle = Create("Frame", UITransparencyBar, {
-		Size = UDim2.new(0, 12, 0, 12),
-		Position = UDim2.new(0.2, 0, 0.5, 0),
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-		BackgroundTransparency = 0.2
-	})Make("Corner", UITransparencyHandle, UDim.new(0.5, 0))
-	
-	local UITransparencyValue = InsertTheme(Create("TextLabel", UITransparencySlider, {
-		Size = UDim2.new(1, 0, 0, 20),
-		Position = UDim2.new(0, 0, 1, 0),
-		Text = "透明度: 20%",
-		TextColor3 = Theme["Color Text"],
-		BackgroundTransparency = 1,
-		Font = Enum.Font.Gotham,
-		TextSize = 12
-	}), "Text")
-	
-	-- UI背景颜色选择
-	local BackgroundColorSection = Create("Frame", SettingsContainer, {
-		Size = UDim2.new(1, 0, 0, 80),
-		BackgroundTransparency = 1,
-		LayoutOrder = 5
-	})
-	
-	local BackgroundColorTitle = InsertTheme(Create("TextLabel", BackgroundColorSection, {
-		Size = UDim2.new(1, 0, 0, 20),
-		Text = "UI 背景颜色",
-		TextColor3 = Theme["Color Text"],
-		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamMedium,
-		TextSize = 14,
-		TextXAlignment = "Left"
-	}), "Text")
-	
-	local BackgroundColorButtons = Create("Frame", BackgroundColorSection, {
-		Size = UDim2.new(1, 0, 0, 50),
-		Position = UDim2.new(0, 0, 0, 25),
-		BackgroundTransparency = 1
-	})
-	
-	local BackgroundColorLayout = Create("UIListLayout", BackgroundColorButtons, {
-		FillDirection = "Horizontal",
-		Padding = UDim.new(0, 5)
-	})
-	
-	-- 创建背景颜色按钮
-	local currentBackgroundColor = 1
-	local backgroundColorButtons = {}
-	
-	for i, color in ipairs(BackgroundColors) do
-		local ColorButton = Create("TextButton", BackgroundColorButtons, {
-			Size = UDim2.new(0, 30, 0, 30),
-			BackgroundColor3 = color,
+		local SearchBox = InsertTheme(Create("TextBox", SearchBoxFrame, {
+			Size = UDim2.new(1, -40, 1, 0),
+			Position = UDim2.new(0, 35, 0, 0),
+			BackgroundTransparency = 1,
 			Text = "",
-			AutoButtonColor = false
-		})Make("Corner", ColorButton, UDim.new(0, 4))
+			PlaceholderText = "搜索功能...",
+			TextColor3 = Theme["Color Text"],
+			PlaceholderColor3 = Theme["Color Dark Text"],
+			Font = Enum.Font.Gotham,
+			TextSize = 12,
+			TextXAlignment = "Left",
+			ClearTextOnFocus = false
+		}), "Text")
 		
-		-- 选中状态指示器
-		local SelectedIndicator = Create("Frame", ColorButton, {
-			Size = UDim2.new(1, 4, 1, 4),
-			Position = UDim2.new(0, -2, 0, -2),
-			BackgroundTransparency = 0.8,
-			BackgroundColor3 = Theme["Color Theme"],
-			Visible = (i == 1)
-		})Make("Corner", SelectedIndicator, UDim.new(0, 6))
-		
-		ColorButton.Activated:Connect(function()
-			-- 更新所有按钮的选中状态
-			for j, btn in ipairs(backgroundColorButtons) do
-				btn.SelectedIndicator.Visible = (j == i)
-			end
-			
-			currentBackgroundColor = i
-			MainFrame.BackgroundColor3 = color
+		-- 搜索框悬停效果
+		SearchBoxFrame.MouseEnter:Connect(function()
+			CreateTween({SearchBoxFrame, "BackgroundTransparency", 0, 0.2})
 		end)
 		
-		backgroundColorButtons[i] = {
-			Button = ColorButton,
-			SelectedIndicator = SelectedIndicator
-		}
+		SearchBoxFrame.MouseLeave:Connect(function()
+			CreateTween({SearchBoxFrame, "BackgroundTransparency", 0.1, 0.2})
+		end)
+		
+		return SearchBox, SearchContainer
 	end
 	
-	-- 关闭设置按钮
-	local CloseSettingsButton = Create("TextButton", SettingsContainer, {
-		Size = UDim2.new(1, 0, 0, 35),
-		BackgroundColor3 = Theme["Color Theme"],
-		Text = "关闭设置",
-		TextColor3 = Color3.fromRGB(255, 255, 255),
-		TextSize = 14,
-		AutoButtonColor = false,
-		LayoutOrder = 6
-	})Make("Corner", CloseSettingsButton, UDim.new(0, 6))
-	
-	-- 滑块功能实现
-	local function SetupSlider(sliderBar, indicator, handle, valueLabel, defaultValue, callback)
-		local dragging = false
+	-- 搜索功能
+	local function PerformSearch(searchText)
+		SearchResults = {}
 		
-		local function UpdateSlider(input)
-			if not dragging then return end
-			
-			local absolutePosition = sliderBar.AbsolutePosition
-			local absoluteSize = sliderBar.AbsoluteSize
-			local relativePosition = math.clamp((input.Position.X - absolutePosition.X) / absoluteSize.X, 0, 1)
-			
-			indicator.Size = UDim2.new(relativePosition, 0, 1, 0)
-			handle.Position = UDim2.new(relativePosition, 0, 0.5, 0)
-			
-			if callback then
-				callback(relativePosition)
+		if searchText == "" or searchText == nil then
+			-- 显示所有内容
+			for _, tabData in pairs(redzlib.Tabs) do
+				tabData.func:Visible(true)
+				if tabData.func.Cont then
+					tabData.func.Cont.Visible = true
+				end
+			end
+			return
+		end
+		
+		searchText = string.lower(searchText)
+		
+		-- 隐藏所有内容
+		for _, tabData in pairs(redzlib.Tabs) do
+			tabData.func:Visible(false)
+			if tabData.func.Cont then
+				tabData.func.Cont.Visible = false
 			end
 		end
 		
-		handle.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				dragging = true
+		-- 搜索标签和选项
+		for _, tabData in pairs(redzlib.Tabs) do
+			local tabName = tabData.TabInfo.Name
+			local foundInTab = false
+			
+			-- 检查标签名
+			if string.find(string.lower(tabName), searchText, 1, true) then
+				foundInTab = true
+				table.insert(SearchResults, {
+					Type = "Tab",
+					Name = tabName,
+					Tab = tabData.func
+				})
 			end
-		end)
-		
-		handle.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				dragging = false
+			
+			-- 检查选项
+			for _, optionData in pairs(redzlib.Options) do
+				if optionData.type == "Section" and string.find(string.lower(optionData.Name), searchText, 1, true) then
+					foundInTab = true
+					table.insert(SearchResults, {
+						Type = "Section",
+						Name = optionData.Name,
+						Tab = tabData.func,
+						Section = optionData.func
+					})
+				end
 			end
-		end)
-		
-		sliderBar.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				dragging = true
-				UpdateSlider(input)
+			
+			if foundInTab then
+				tabData.func:Visible(true)
+				if tabData.func.Cont then
+					tabData.func.Cont.Visible = true
+				end
 			end
-		end)
+		end
 		
-		sliderBar.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				dragging = false
+		-- 如果有搜索结果，自动切换到第一个标签
+		if #SearchResults > 0 then
+			Window:SelectTab(SearchResults[1].Tab)
+			
+			-- 如果是缩小状态，自动展开
+			if Minimized then
+				Window:MinimizeBtn()
 			end
-		end)
-		
-		UserInputService.InputChanged:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseMovement then
-				UpdateSlider(input)
-			end
-		end)
-		
-		-- 设置初始值
-		if defaultValue then
-			indicator.Size = UDim2.new(defaultValue, 0, 1, 0)
-			handle.Position = UDim2.new(defaultValue, 0, 0.5, 0)
 		end
 	end
-	
-	-- UI大小滑块
-	SetupSlider(UISizeBar, UISizeIndicator, UISizeHandle, UISizeValue, 0.5, function(value)
-		local scale = 0.5 + value * 0.5  -- 0.5 到 1.0 的范围
-		UISizeValue.Text = "大小: " .. math.floor(scale * 100) .. "%"
-		ScreenGui.Scale.Scale = UIScale * scale
-	end)
-	
-	-- UI透明度滑块
-	SetupSlider(UITransparencyBar, UITransparencyIndicator, UITransparencyHandle, UITransparencyValue, 0.2, function(value)
-		local transparency = value
-		UITransparencyValue.Text = "透明度: " .. math.floor(transparency * 100) .. "%"
-		MainFrame.BackgroundTransparency = transparency
-	end)
-	
-	-- 设置按钮功能
-	SettingsButton.Activated:Connect(function()
-		SettingsFrame.Visible = not SettingsFrame.Visible
-	end)
-	
-	CloseSettingsButton.Activated:Connect(function()
-		SettingsFrame.Visible = false
-	end)
 	
 	function Window:CloseBtn()
 		local Dialog = Window:Dialog({
@@ -1269,7 +953,8 @@ function redzlib:MakeWindow(Configs)
 			ControlSize1.Visible = false
 			ControlSize2.Visible = false
 			-- 缩小后的高度是原来的一半
-			CreateTween({MainFrame, "Size", UDim2.fromOffset(MainFrame.Size.X.Offset, 28), 0.25, true})
+			local minimizedHeight = math.floor(SaveSize.Y.Offset / 2)
+			CreateTween({MainFrame, "Size", UDim2.fromOffset(SaveSize.X.Offset, minimizedHeight), 0.25, true})
 			CreateTween({RainbowBorder, "Size", UDim2.new(1, 8, 1, 8), 0.25})
 			Minimized = true
 		end
@@ -1546,6 +1231,20 @@ function redzlib:MakeWindow(Configs)
 		table.insert(redzlib.Tabs, {TabInfo = {Name = TName, Icon = TIcon}, func = Tab, Cont = Container})
 		Tab.Cont = Container
 		
+		-- 为每个标签添加搜索框
+		local SearchBox, SearchContainer = CreateSearchBox(Container)
+		SearchContainer.LayoutOrder = -999 -- 确保搜索框在最上面
+		
+		SearchBox.FocusLost:Connect(function()
+			PerformSearch(SearchBox.Text)
+		end)
+		
+		SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+			if SearchBox:IsFocused() then
+				PerformSearch(SearchBox.Text)
+			end
+		end)
+		
 		function Tab:Disable()
 			Container.Parent = nil
 			CreateTween({LabelTitle, "TextTransparency", 0.3, 0.35})
@@ -1686,11 +1385,19 @@ function redzlib:MakeWindow(Configs)
 				AnchorPoint = Vector2.new(0.5, 0.5)
 			})
 			
+			-- 优化后的开关样式
+			local ToggleBackground = InsertTheme(Create("Frame", Slider, {
+				Size = UDim2.new(1, 0, 1, 0),
+				BackgroundColor3 = Theme["Color Stroke"],
+				BackgroundTransparency = 0.2
+			}), "Stroke")Make("Corner", ToggleBackground, UDim.new(0.5, 0))
+			
 			local Toggle = InsertTheme(Create("Frame", Slider, {
 				Size = UDim2.new(0, 12, 0, 12),
-				Position = UDim2.new(0, 0, 0.5),
+				Position = UDim2.new(0, 2, 0.5),
 				AnchorPoint = Vector2.new(0, 0.5),
-				BackgroundColor3 = Theme["Color Theme"]
+				BackgroundColor3 = Theme["Color Theme"],
+				BackgroundTransparency = 0.8
 			}), "Theme")Make("Corner", Toggle, UDim.new(0.5, 0))
 			
 			local WaitClick
@@ -1701,12 +1408,14 @@ function redzlib:MakeWindow(Configs)
 				SetFlag(Flag, Default)
 				Funcs:FireCallback(Callback, Default)
 				if Default then
-					CreateTween({Toggle, "Position", UDim2.new(1, 0, 0.5), 0.25})
+					CreateTween({Toggle, "Position", UDim2.new(1, -14, 0.5), 0.25})
 					CreateTween({Toggle, "BackgroundTransparency", 0, 0.25})
+					CreateTween({ToggleBackground, "BackgroundColor3", Theme["Color Theme"], 0.25})
 					CreateTween({Toggle, "AnchorPoint", Vector2.new(1, 0.5), 0.25, Wait or false})
 				else
-					CreateTween({Toggle, "Position", UDim2.new(0, 0, 0.5), 0.25})
+					CreateTween({Toggle, "Position", UDim2.new(0, 2, 0.5), 0.25})
 					CreateTween({Toggle, "BackgroundTransparency", 0.8, 0.25})
+					CreateTween({ToggleBackground, "BackgroundColor3", Theme["Color Stroke"], 0.25})
 					CreateTween({Toggle, "AnchorPoint", Vector2.new(0, 0.5), 0.25, Wait or false})
 				end
 				WaitClick = false
@@ -2374,10 +2083,6 @@ function redzlib:MakeWindow(Configs)
 	
 	CloseButton.Activated:Connect(Window.CloseBtn)
 	MinimizeButton.Activated:Connect(Window.MinimizeBtn)
-	SettingsButton.Activated:Connect(function()
-		SettingsFrame.Visible = not SettingsFrame.Visible
-	end)
-	
 	return Window
 end
 
