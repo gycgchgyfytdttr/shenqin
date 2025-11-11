@@ -6097,85 +6097,26 @@ else
 end
 
 if Mobile then
-local MinimizeButton = New("TextButton", {
-    Parent = GUI,
-    Text = "打开Frost",
-    BackgroundColor3 = Color3.fromRGB(0, 0, 0), -- 纯黑色背景
-    BackgroundTransparency = 0.2,
-    TextColor3 = Color3.new(1, 1, 1),
-    Size = UDim2.new(0, 50, 0, 50),
-    Position = UDim2.new(0.85, 15, 0.2, -18),
-    Active = true,
-    Draggable = true
-}, {
-    New("UICorner", {
-        CornerRadius = UDim.new(0, 8)
+    local MinimizeButton = New("TextButton", {
+        Parent = GUI,
+        Text = "Frost",
+        BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+	    BackgroundTransparency = 0.5,
+	    TextColor3 = Color3.new(1, 1, 1),
+	    Size = UDim2.new(0, 50, 0, 50),
+	    Position = UDim2.new(0.85, 15, 0.2, -18),
+	    Active = true,
+	    Draggable = true
+    }, {
+        New("UICorner", {
+            CornerRadius = UDim.new(0, 8)
+        })
     })
-})
+    AddSignal(MinimizeButton.MouseButton1Click, function()
+        if Library.Window then
+	        Library.Window:Minimize()
+	    end
+    end)
+end
 
--- 创建彩虹渐变边框
-local BorderFrame = New("Frame", {
-    Parent = MinimizeButton,
-    Size = UDim2.new(1, 0, 1, 0),
-    BackgroundColor3 = Color3.new(1, 1, 1),
-    BorderSizePixel = 0,
-    ZIndex = 0
-}, {
-    New("UICorner", {
-        CornerRadius = UDim.new(0, 8)
-    })
-})
-
--- 彩虹渐变
-local RainbowGradient = New("UIGradient", {
-    Parent = BorderFrame,
-    Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),     -- 红
-        ColorSequenceKeypoint.new(0.16, Color3.fromRGB(255, 165, 0)), -- 橙
-        ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 255, 0)), -- 黄
-        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 0)),   -- 绿
-        ColorSequenceKeypoint.new(0.66, Color3.fromRGB(0, 0, 255)),   -- 蓝
-        ColorSequenceKeypoint.new(0.83, Color3.fromRGB(75, 0, 130)),  -- 靛
-        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(238, 130, 238)) -- 紫
-    }),
-    Rotation = 45
-})
-local InnerFrame = New("Frame", {
-    Parent = MinimizeButton,
-    AnchorPoint = Vector2.new(0.5, 0.5),
-    Position = UDim2.new(0.5, 0, 0.5, 0),
-    Size = UDim2.new(0.95, 0, 0.95, 0),
-    BackgroundColor3 = Color3.fromRGB(0, 0, 0), 
-    BackgroundTransparency = 0,
-    BorderSizePixel = 0,
-    ZIndex = 2
-}, {
-    New("UICorner", {
-        CornerRadius = UDim.new(0, 6)
-    })
-})
-
-local TextLabel = New("TextLabel", {
-    Parent = InnerFrame,
-    Size = UDim2.new(1, 0, 1, 0),
-    BackgroundTransparency = 1,
-    Text = "打开Frost",
-    TextColor3 = Color3.new(1, 1, 1),
-    TextScaled = true,
-    Font = Enum.Font.GothamBold,
-    ZIndex = 3
-})
-spawn(function()
-    while wait(0.1) do
-        RainbowGradient.Rotation = RainbowGradient.Rotation + 5
-        if RainbowGradient.Rotation >= 360 then
-            RainbowGradient.Rotation = 0
-        end
-    end
-end)
-
-AddSignal(MinimizeButton.MouseButton1Click, function()
-    if Library.Window then
-        Library.Window:Minimize()
-    end
-end)
+return Library, SaveManager, InterfaceManager
