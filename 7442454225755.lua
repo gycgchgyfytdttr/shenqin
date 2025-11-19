@@ -1,4 +1,4 @@
---[[FrostUI - 美化版]]
+--[[FrostUI - 优化美化版]]
 local lib = {RainbowColorValue = 0, HueSelectionPosition = 0}
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -12,57 +12,6 @@ local ui = Instance.new("ScreenGui")
 ui.Name = "FrostUI"
 ui.Parent = game.CoreGui
 ui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
--- 启动动画函数
-local function createWelcomeAnimation()
-    local welcomeScreen = Instance.new("Frame")
-    welcomeScreen.Name = "WelcomeScreen"
-    welcomeScreen.Size = UDim2.new(1, 0, 1, 0)
-    welcomeScreen.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    welcomeScreen.BackgroundTransparency = 0
-    welcomeScreen.BorderSizePixel = 0
-    welcomeScreen.ZIndex = 999
-    welcomeScreen.Parent = ui
-    
-    local welcomeCorner = Instance.new("UICorner")
-    welcomeCorner.CornerRadius = UDim.new(0, 0)
-    welcomeCorner.Parent = welcomeScreen
-    
-    local welcomeLabel = Instance.new("TextLabel")
-    welcomeLabel.Name = "WelcomeLabel"
-    welcomeLabel.Size = UDim2.new(1, 0, 0.2, 0)
-    welcomeLabel.Position = UDim2.new(0, 0, 0.4, 0)
-    welcomeLabel.BackgroundTransparency = 1
-    welcomeLabel.Text = "欢迎使用FrostUI"
-    welcomeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    welcomeLabel.TextSize = 32
-    welcomeLabel.Font = Enum.Font.GothamBlack
-    welcomeLabel.TextStrokeTransparency = 0.5
-    welcomeLabel.TextStrokeColor3 = Color3.fromRGB(0, 100, 255)
-    welcomeLabel.Parent = welcomeScreen
-    
-    -- 渐变背景
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)),
-        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(10, 10, 30)),
-        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 0, 0))
-    })
-    gradient.Rotation = 45
-    gradient.Parent = welcomeScreen
-    
-    return welcomeScreen
-end
-
--- 显示启动动画
-local welcomeScreen = createWelcomeAnimation()
-task.wait(2)
-
--- 渐隐动画
-TweenService:Create(welcomeScreen, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
-TweenService:Create(welcomeScreen.WelcomeLabel, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 1, TextStrokeTransparency = 1}):Play()
-task.wait(1)
-welcomeScreen:Destroy()
 
 coroutine.wrap(
     function()
@@ -137,9 +86,10 @@ local function MakeDraggable(topbarobject, object)
     )
 end
 
-function lib:Window(text, preset, closebind)
+function lib:Window(text, preset, closebind, minimizedName)
     CloseBind = closebind or Enum.KeyCode.RightControl
     PresetColor = preset or Color3.fromRGB(0, 100, 255)
+    local minimizedTitle = minimizedName or text
     fs = false
     
     -- 主容器
@@ -171,6 +121,7 @@ function lib:Window(text, preset, closebind)
     local MinimizedTitle = Instance.new("TextLabel")
     local ExpandBtn = Instance.new("TextButton")
     local ExpandLabel = Instance.new("TextLabel")
+    local MinimizedDragFrame = Instance.new("Frame")
 
     -- 创建主窗口
     Main.Name = "Main"
@@ -303,7 +254,7 @@ function lib:Window(text, preset, closebind)
     MinimizedTitle.Position = UDim2.new(0.05, 0, 0, 0)
     MinimizedTitle.Size = UDim2.new(0, 150, 0, 45)
     MinimizedTitle.Font = Enum.Font.GothamBlack
-    MinimizedTitle.Text = text
+    MinimizedTitle.Text = minimizedTitle
     MinimizedTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
     MinimizedTitle.TextSize = 18
     MinimizedTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -326,12 +277,19 @@ function lib:Window(text, preset, closebind)
     ExpandLabel.BackgroundTransparency = 1
     ExpandLabel.Size = UDim2.new(1, 0, 1, 0)
     ExpandLabel.Font = Enum.Font.GothamBlack
-    ExpandLabel.Text = text .. "  [+]"
+    ExpandLabel.Text = minimizedTitle .. "  [+]"
     ExpandLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     ExpandLabel.TextSize = 18
     ExpandLabel.TextXAlignment = Enum.TextXAlignment.Center
     ExpandLabel.TextStrokeTransparency = 0.3
     ExpandLabel.TextStrokeColor3 = Color3.fromRGB(0, 100, 255)
+    
+    MinimizedDragFrame = Instance.new("Frame")
+    MinimizedDragFrame.Name = "MinimizedDragFrame"
+    MinimizedDragFrame.Parent = MinimizedUI
+    MinimizedDragFrame.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+    MinimizedDragFrame.BackgroundTransparency = 1.000
+    MinimizedDragFrame.Size = UDim2.new(1, 0, 1, 0)
     
     -- 最小化功能
     local isMinimized = false
@@ -342,7 +300,7 @@ function lib:Window(text, preset, closebind)
             MinimizedUI.Visible = true
             
             -- 计算标题文本宽度
-            local textSize = game:GetService("TextService"):GetTextSize(text .. "  [+]", 18, Enum.Font.GothamBlack, Vector2.new(1000, 45))
+            local textSize = game:GetService("TextService"):GetTextSize(minimizedTitle .. "  [+]", 18, Enum.Font.GothamBlack, Vector2.new(1000, 45))
             local newWidth = math.max(250, textSize.X + 60)
             
             MinimizedUI:TweenSize(
@@ -353,7 +311,7 @@ function lib:Window(text, preset, closebind)
                 true
             )
             
-            ExpandLabel.Text = text .. "  [+]"
+            ExpandLabel.Text = minimizedTitle .. "  [+]"
             isMinimized = true
         end
     end)
@@ -377,7 +335,7 @@ function lib:Window(text, preset, closebind)
     end)
     
     MakeDraggable(DragFrame, Main)
-    MakeDraggable(MinimizedUI, MinimizedUI)
+    MakeDraggable(MinimizedDragFrame, MinimizedUI)
     
     -- 开启动画
     Main:TweenSize(UDim2.new(0, 650, 0, 400), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, .6, true)
@@ -665,8 +623,8 @@ function lib:Window(text, preset, closebind)
 
         TabPadding.Name = "TabPadding"
         TabPadding.Parent = Tab
-        TabPadding.PaddingLeft = UDim.new(0, 5)
-        TabPadding.PaddingTop = UDim.new(0, 5)
+        TabPadding.PaddingLeft = UDim.new(0, 8)
+        TabPadding.PaddingTop = UDim.new(0, 8)
 
         if fs == false then
             fs = true
@@ -724,7 +682,7 @@ function lib:Window(text, preset, closebind)
             Button.Name = "Button"
             Button.Parent = Tab
             Button.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-            Button.Size = UDim2.new(0, 450, 0, 42)
+            Button.Size = UDim2.new(0, 454, 0, 42)
             Button.AutoButtonColor = false
             Button.Font = Enum.Font.SourceSans
             Button.Text = ""
@@ -803,7 +761,7 @@ function lib:Window(text, preset, closebind)
             Toggle.Parent = Tab
             Toggle.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
             Toggle.Position = UDim2.new(0, 0, 0, 0)
-            Toggle.Size = UDim2.new(0, 450, 0, 42)
+            Toggle.Size = UDim2.new(0, 454, 0, 42)
             Toggle.AutoButtonColor = false
             Toggle.Font = Enum.Font.SourceSans
             Toggle.Text = ""
@@ -1012,7 +970,7 @@ function lib:Window(text, preset, closebind)
             Slider.Parent = Tab
             Slider.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
             Slider.Position = UDim2.new(0, 0, 0, 0)
-            Slider.Size = UDim2.new(0, 450, 0, 60)
+            Slider.Size = UDim2.new(0, 454, 0, 60)
             Slider.AutoButtonColor = false
             Slider.Font = Enum.Font.SourceSans
             Slider.Text = ""
@@ -1049,7 +1007,7 @@ function lib:Window(text, preset, closebind)
             SliderValue.Position = UDim2.new(0.035, 0, 0, 0)
             SliderValue.Size = UDim2.new(0, 420, 0, 30)
             SliderValue.Font = Enum.Font.GothamBlack
-            SliderValue.Text = tostring(start and math.floor((start / max) * (max - min) + min) or 0)
+            SliderValue.Text = tostring(start and math.floor((start / max) * (max - min) + min) or min)
             SliderValue.TextColor3 = Color3.fromRGB(200, 200, 200)
             SliderValue.TextSize = 14.000
             SliderValue.TextXAlignment = Enum.TextXAlignment.Right
@@ -1070,16 +1028,16 @@ function lib:Window(text, preset, closebind)
             CurrentValueFrame.Parent = SlideFrame
             CurrentValueFrame.BackgroundColor3 = PresetColor
             CurrentValueFrame.BorderSizePixel = 0
-            CurrentValueFrame.Size = UDim2.new((start or 0) / max, 0, 0, 6)
+            CurrentValueFrame.Size = UDim2.new((start or min) / max, 0, 0, 6)
 
             CurrentValueFrameCorner.CornerRadius = UDim.new(1, 0)
             CurrentValueFrameCorner.Parent = CurrentValueFrame
 
             SlideCircle.Name = "SlideCircle"
             SlideCircle.Parent = SlideFrame
-            SlideCircle.BackgroundColor3 = PresetColor
+            SlideCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             SlideCircle.BackgroundTransparency = 0
-            SlideCircle.Position = UDim2.new((start or 0) / max, -8, -0.8, 0)
+            SlideCircle.Position = UDim2.new((start or min) / max, -8, -0.8, 0)
             SlideCircle.Size = UDim2.new(0, 16, 0, 16)
             SlideCircle.Image = ""
             SlideCircle.ImageColor3 = PresetColor
@@ -1091,32 +1049,23 @@ function lib:Window(text, preset, closebind)
                 function()
                     while wait() do
                         CurrentValueFrame.BackgroundColor3 = PresetColor
-                        SlideCircle.BackgroundColor3 = PresetColor
                     end
                 end
             )()
 
             local function move(input)
-                local pos =
-                    UDim2.new(
-                    math.clamp((input.Position.X - SlideFrame.AbsolutePosition.X) / SlideFrame.AbsoluteSize.X, 0, 1),
-                    -8,
-                    -0.8,
-                    0
-                )
-                local pos1 =
-                    UDim2.new(
-                    math.clamp((input.Position.X - SlideFrame.AbsolutePosition.X) / SlideFrame.AbsoluteSize.X, 0, 1),
-                    0,
-                    0,
-                    6
-                )
+                local posX = math.clamp((input.Position.X - SlideFrame.AbsolutePosition.X) / SlideFrame.AbsoluteSize.X, 0, 1)
+                local pos = UDim2.new(posX, -8, -0.8, 0)
+                local pos1 = UDim2.new(posX, 0, 0, 6)
+                
                 CurrentValueFrame:TweenSize(pos1, "Out", "Sine", 0.1, true)
                 SlideCircle:TweenPosition(pos, "Out", "Sine", 0.1, true)
-                local value = math.floor(((pos.X.Scale * max) / max) * (max - min) + min)
+                
+                local value = math.floor((posX * (max - min)) + min)
                 SliderValue.Text = tostring(value)
                 pcall(callback, value)
             end
+            
             SlideCircle.InputBegan:Connect(
                 function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -1124,6 +1073,7 @@ function lib:Window(text, preset, closebind)
                     end
                 end
             )
+            
             SlideCircle.InputEnded:Connect(
                 function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -1131,13 +1081,41 @@ function lib:Window(text, preset, closebind)
                     end
                 end
             )
-            game:GetService("UserInputService").InputChanged:Connect(
+            
+            Slider.InputBegan:Connect(
+                function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = true
+                        local posX = math.clamp((input.Position.X - SlideFrame.AbsolutePosition.X) / SlideFrame.AbsoluteSize.X, 0, 1)
+                        local pos = UDim2.new(posX, -8, -0.8, 0)
+                        local pos1 = UDim2.new(posX, 0, 0, 6)
+                        
+                        CurrentValueFrame:TweenSize(pos1, "Out", "Sine", 0.1, true)
+                        SlideCircle:TweenPosition(pos, "Out", "Sine", 0.1, true)
+                        
+                        local value = math.floor((posX * (max - min)) + min)
+                        SliderValue.Text = tostring(value)
+                        pcall(callback, value)
+                    end
+                end
+            )
+            
+            Slider.InputEnded:Connect(
+                function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = false
+                    end
+                end
+            )
+            
+            UserInputService.InputChanged:Connect(
                 function(input)
                     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
                         move(input)
                     end
                 end
             )
+            
             Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y + 10)
         end
         
@@ -1161,7 +1139,7 @@ function lib:Window(text, preset, closebind)
             Dropdown.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
             Dropdown.ClipsDescendants = true
             Dropdown.Position = UDim2.new(0, 0, 0, 0)
-            Dropdown.Size = UDim2.new(0, 450, 0, 42)
+            Dropdown.Size = UDim2.new(0, 454, 0, 42)
             Dropdown.BackgroundTransparency = 0
 
             DropdownCorner.CornerRadius = UDim.new(0, 8)
@@ -1176,7 +1154,7 @@ function lib:Window(text, preset, closebind)
             DropdownBtn.Parent = Dropdown
             DropdownBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
             DropdownBtn.BackgroundTransparency = 1.000
-            DropdownBtn.Size = UDim2.new(0, 450, 0, 42)
+            DropdownBtn.Size = UDim2.new(0, 454, 0, 42)
             DropdownBtn.Font = Enum.Font.SourceSans
             DropdownBtn.Text = ""
             DropdownBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
@@ -1229,7 +1207,7 @@ function lib:Window(text, preset, closebind)
                 function()
                     if droptog == false then
                         Dropdown:TweenSize(
-                            UDim2.new(0, 450, 0, 55 + framesize),
+                            UDim2.new(0, 454, 0, 55 + framesize),
                             Enum.EasingDirection.Out,
                             Enum.EasingStyle.Quart,
                             .2,
@@ -1244,7 +1222,7 @@ function lib:Window(text, preset, closebind)
                         Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y + 10)
                     else
                         Dropdown:TweenSize(
-                            UDim2.new(0, 450, 0, 42),
+                            UDim2.new(0, 454, 0, 42),
                             Enum.EasingDirection.Out,
                             Enum.EasingStyle.Quart,
                             .2,
@@ -1321,7 +1299,7 @@ function lib:Window(text, preset, closebind)
                         DropdownTitle.Text = text .. " - " .. v
                         pcall(callback, v)
                         Dropdown:TweenSize(
-                            UDim2.new(0, 450, 0, 42),
+                            UDim2.new(0, 454, 0, 42),
                             Enum.EasingDirection.Out,
                             Enum.EasingStyle.Quart,
                             .2,
@@ -1388,7 +1366,7 @@ function lib:Window(text, preset, closebind)
             Colorpicker.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
             Colorpicker.ClipsDescendants = true
             Colorpicker.Position = UDim2.new(0, 0, 0, 0)
-            Colorpicker.Size = UDim2.new(0, 450, 0, 42)
+            Colorpicker.Size = UDim2.new(0, 454, 0, 42)
             Colorpicker.BackgroundTransparency = 0
 
             ColorpickerCorner.CornerRadius = UDim.new(0, 8)
@@ -1454,7 +1432,7 @@ function lib:Window(text, preset, closebind)
             ColorpickerBtn.Parent = ColorpickerTitle
             ColorpickerBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
             ColorpickerBtn.BackgroundTransparency = 1.000
-            ColorpickerBtn.Size = UDim2.new(0, 450, 0, 42)
+            ColorpickerBtn.Size = UDim2.new(0, 454, 0, 42)
             ColorpickerBtn.Font = Enum.Font.SourceSans
             ColorpickerBtn.Text = ""
             ColorpickerBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
@@ -1599,7 +1577,7 @@ function lib:Window(text, preset, closebind)
                         ColorSelection.Visible = true
                         HueSelection.Visible = true
                         Colorpicker:TweenSize(
-                            UDim2.new(0, 450, 0, 180),
+                            UDim2.new(0, 454, 0, 180),
                             Enum.EasingDirection.Out,
                             Enum.EasingStyle.Quart,
                             .2,
@@ -1611,7 +1589,7 @@ function lib:Window(text, preset, closebind)
                         ColorSelection.Visible = false
                         HueSelection.Visible = false
                         Colorpicker:TweenSize(
-                            UDim2.new(0, 450, 0, 42),
+                            UDim2.new(0, 454, 0, 42),
                             Enum.EasingDirection.Out,
                             Enum.EasingStyle.Quart,
                             .2,
@@ -1828,7 +1806,7 @@ function lib:Window(text, preset, closebind)
                     ColorSelection.Visible = false
                     HueSelection.Visible = false
                     Colorpicker:TweenSize(
-                        UDim2.new(0, 450, 0, 42),
+                        UDim2.new(0, 454, 0, 42),
                         Enum.EasingDirection.Out,
                         Enum.EasingStyle.Quart,
                         .2,
@@ -1850,7 +1828,7 @@ function lib:Window(text, preset, closebind)
             Label.Name = "Button"
             Label.Parent = Tab
             Label.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-            Label.Size = UDim2.new(0, 450, 0, 42)
+            Label.Size = UDim2.new(0, 454, 0, 42)
             Label.AutoButtonColor = false
             Label.Font = Enum.Font.SourceSans
             Label.Text = ""
@@ -1897,7 +1875,7 @@ function lib:Window(text, preset, closebind)
             Textbox.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
             Textbox.ClipsDescendants = true
             Textbox.Position = UDim2.new(0, 0, 0, 0)
-            Textbox.Size = UDim2.new(0, 450, 0, 42)
+            Textbox.Size = UDim2.new(0, 454, 0, 42)
             Textbox.BackgroundTransparency = 0
 
             TextboxCorner.CornerRadius = UDim.new(0, 8)
@@ -1971,7 +1949,7 @@ function lib:Window(text, preset, closebind)
             Bind.Name = "Bind"
             Bind.Parent = Tab
             Bind.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-            Bind.Size = UDim2.new(0, 450, 0, 42)
+            Bind.Size = UDim2.new(0, 454, 0, 42)
             Bind.AutoButtonColor = false
             Bind.Font = Enum.Font.SourceSans
             Bind.Text = ""
